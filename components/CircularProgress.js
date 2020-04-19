@@ -41,14 +41,16 @@ const CircularProgress = ({ progress, isSecondHalf }) => {
 const colour = '#8f8f8f';
 const borderCol='white';
 // const borderCol='black';
-const circleWidth = Dimensions.get('window').width/2.2
+const circleWidth = Dimensions.get('window').width/2.3
+const borderWidth = 5;
+const borderRadius = circleWidth/2; 
 
 const styles = StyleSheet.create({
     progressContainer: {
         width: circleWidth,
         height: circleWidth,
-        borderWidth: 10,
-        borderRadius: circleWidth/2,
+        borderWidth: borderWidth,
+        borderRadius: borderRadius,
         borderColor: borderCol,
         justifyContent: 'center',
         alignItems: 'center'
@@ -56,8 +58,8 @@ const styles = StyleSheet.create({
     firstProgressLayer: {
         width: circleWidth,
         height: circleWidth,
-        borderWidth: 10,
-        borderRadius: circleWidth/2,
+        borderWidth: borderWidth,
+        borderRadius: borderRadius,
         position: 'absolute',
         borderLeftColor: 'transparent',
         borderBottomColor: 'transparent',
@@ -68,8 +70,8 @@ const styles = StyleSheet.create({
     secondProgressLayer: {
         width: circleWidth,
         height: circleWidth,
-        borderWidth: 10,
-        borderRadius: circleWidth/2,
+        borderWidth: borderWidth,
+        borderRadius: borderRadius,
         position: 'absolute',
         borderLeftColor: 'transparent',
         borderBottomColor: 'transparent',

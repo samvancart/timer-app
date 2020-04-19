@@ -16,6 +16,7 @@ import Card from '../components/Card';
 import MainButton from '../components/MainButton';
 import Clock from '../components/Clock';
 import CircularProgress from '../components/CircularProgress';
+import EditableClock from '../components/EditableClock';
 import { getTimeFromMilliseconds, getNewTime, getTimeFormat } from '../functions/timeConversions';
 
 
@@ -36,7 +37,7 @@ const StartTimerScreen = props => {
     const [remaining, setRemaining] = useState(end);
     const [time, setTime] = useState(getTimeFromMilliseconds(end * delay));
 
-    
+
     useInterval(() => {
         setIntervalCounter(Math.floor(intervalCounter) + 1);
         if ((intervalCounter % fraction) === 0) {
@@ -165,6 +166,10 @@ const StartTimerScreen = props => {
                     </Card>
                 </View>
             </View>
+            <View style={{flex:0.5, alignItems:'center', justifyContent:'space-around' }}>
+            <EditableClock />
+            </View>
+           
         </View >
     );
 };
@@ -180,7 +185,7 @@ const styles = StyleSheet.create({
         // backgroundColor: '#688',
     },
     playCardContainer: {
-        flex: 0.35,
+        flex: 0.36,
         // backgroundColor: '#555'
     },
     timerCardContainer: {
@@ -217,8 +222,8 @@ const styles = StyleSheet.create({
         // width: Dimensions.get('window').width * 0.8,
         // height: Dimensions.get('window').width * 0.5,
         // borderRadius: Dimensions.get('window').width * 0.5 / 2,
-        width:'100%',
-        height:'100%',
+        width: '100%',
+        height: '100%',
         // backgroundColor:'green',
         // borderRadius: 150,
         overflow: 'hidden',
@@ -232,10 +237,10 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         alignContent: 'center',
         justifyContent: 'center',
-        width:'100%',
-        height:'100%',
+        width: '100%',
+        height: '100%',
         // backgroundColor:'green',
-        borderRadius:10,
+        borderRadius: 10,
     },
     playButton: {
         flexDirection: 'row',
