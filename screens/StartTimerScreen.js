@@ -17,6 +17,7 @@ import MainButton from '../components/MainButton';
 import Clock from '../components/Clock';
 import CircularProgress from '../components/CircularProgress';
 import EditableClock from '../components/EditableClock';
+import TimePicker from '../components/TimePicker';
 import { getTimeFromMilliseconds, getNewTime, getTimeFormat } from '../functions/timeConversions';
 
 
@@ -166,10 +167,11 @@ const StartTimerScreen = props => {
                     </Card>
                 </View>
             </View>
-            <View style={{flex:0.5, alignItems:'center', justifyContent:'space-around' }}>
-            <EditableClock />
+            <View style={{ flex: 0.5, alignItems: 'center', justifyContent: 'space-around' }}>
+                {/* <EditableClock /> */}
+                {/* <TimePicker /> */}
             </View>
-           
+
         </View >
     );
 };

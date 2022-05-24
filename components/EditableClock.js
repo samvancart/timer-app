@@ -1,120 +1,195 @@
-import React, { useRef, useEffect } from 'react'
-import { View, Text, FlatList, StyleSheet } from 'react-native'
+import React, { useRef, useEffect, useState } from 'react'
+import { View, Text, FlatList, StyleSheet, Animated, Easing } from 'react-native'
 
 import MainButton from './MainButton';
-import Card from './Card';
 import { getTimeFormat } from '../functions/timeConversions';
 
 import { Ionicons } from '@expo/vector-icons';
 
-
-let scrollOffset = 0;
+const upperBound = 59;
+const lowerBound = 0;
 let viewHeight = 0;
-let topOffset = 0;
-let viewY = 0;
-let itemY = 0;
 let itemHeight = 0;
+let scrollOffset = 0;
 
-const data = Array.from(Array(60), (_, i) => {
-    return { id: i };
-});
 
-const renderItem = ({item}) => {
-    return (
-        <View style={styles.listItemContainer}
-            onLayout={e => {
-                itemHeight = e.nativeEvent.layout.height;
-                itemY = e.nativeEvent.layout.y;
-            }}
-        >
-            <Text style={styles.listItem}>
-                {getTimeFormat(item.id)}
-            </Text>
-        </View>
-    );
+const initData = () => {
+    let data = Array.from(Array(62), (_, i) => {
+        if (i === 0) {
+            return { title: 59, id: i }
+        }
+        if (i === 61) {
+            return { title: 0, id: i }
+        }
+        return { title: i - 1, id: i };
+    });
+    return data;
 };
+
 
 const EditableClock = props => {
 
-    const listRef = useRef();
-    const listContainerRef = useRef();
+    const animation = useRef(new Animated.Value(0));
+    const listRef = useRef(0);
 
-    // useEffect = (() => {
+    const [currentIdx, setCurrentIdx] = useState(1);
+    const [data, setData] = useState(initData());
+    const [heightView, setHeightView] = useState(0);
+    const [heightItem, setHeightItem] = useState(0);
+    const [isDirectionUp, setIsDirectionUp] = useState(null);
+    const [contentOffsetState, setContentOffsetState] = useState(0);
 
-    // });
-
-
-
-const handleUpScroll = () => {
-    scrollDistance = getScrollDistance(viewHeight, itemHeight);
-    moveList((scrollDistance) * (-1));
-};
-const handleDownScroll = () => {
-    scrollDistance = getScrollDistance(viewHeight, itemHeight);
-    moveList(scrollDistance);
-};
-const getScrollDistance = (viewHeight, itemHeight) => {
-    return viewHeight - (viewHeight - itemHeight);
-};
-const moveList = (scrollDistance) => {
-    let offset = scrollOffset + scrollDistance
-
-    listRef.current.scrollToOffset({
-        animated: true,
-        offset: offset
+    const getTranslateStyle = position => ({
+        transform: [
+            {
+                translateY: position
+            },
+        ],
     });
-};
 
 
-return (
-    <View style={styles.container}>
-        <View style={styles.arrowContainer}>
-            <MainButton styles={styles.arrow} onPress={handleUpScroll}>
-                <Ionicons name="md-arrow-dropup" size={130} color="#8f8f8f" />
-            </MainButton>
-        </View>
-        <View
-            style={styles.listContainer}
-            ref={listContainerRef}
-            onLayout={e => {
-                listContainerRef.current.measureInWindow((_x, y) => {
-                    topOffset = y;
-                });
-                viewHeight = e.nativeEvent.layout.height;
-                viewY = e.nativeEvent.layout.y;
+    useEffect(() => {
 
-            }}
-        >
-            <FlatList
-                showsVerticalScrollIndicator={false}
-                scrollEnabled={false}
-                data={data}
-                renderItem={renderItem}
-                // renderItem={({ item }) =>
-                //     <View style={styles.listItemContainer}
-                //         onLayout={e => {
-                //             itemHeight = e.nativeEvent.layout.height;
-                //             itemY = e.nativeEvent.layout.y;
-                //         }}
-                //     >
-                //         <Text style={styles.listItem}>
-                //             {getTimeFormat(item.id)}
-                //         </Text>
-                //     </View>}
-                keyExtractor={item => item.id.toString()}
-                ref={listRef}
-                onScroll={e => {
-                    scrollOffset = e.nativeEvent.contentOffset.y;
+    });
+
+
+    useEffect(() => {
+        if (isDirectionUp !== null) {
+            if ((currentIdx === 1) && isDirectionUp) {
+                getNewOffset(getScrollDistance(heightView, heightItem) * (data.length - 2));
+                console.log(contentOffsetState)
+            } else if ((currentIdx === data.length) && !isDirectionUp) {
+                getNewOffset(getScrollDistance(heightView, heightItem));
+            }
+        }
+    });
+
+
+    const getNewOffset = (offset) => {
+        listRef.current.scrollToOffset({
+            animated: false,
+            offset: offset
+        });
+        setCurrentIdx(getPosition(offset, getScrollDistance(heightView, heightItem)));
+    }
+
+    useEffect(() => {
+        Animated.timing(animation.current, {
+            toValue: 59,
+            duration: 10000,
+            easing: Easing.out(Easing.linear),
+            useNativeDriver: true
+        }).start();
+    }, [])
+
+    const rotation = animation.current.interpolate({
+        inputRange: [0, 59],
+        outputRange: ['0deg', '360deg'],
+        extrapolate: "clamp"
+    });
+
+    const handleUpScroll = () => {
+        setCurrentIdx(currentIdx - 1)
+        if (currentIdx <= lowerBound) {
+            setCurrentIdx(upperBound);
+            return;
+        }
+
+    };
+
+
+    const handleDownScroll = () => {
+        setCurrentIdx(currentIdx + 1)
+        if (currentIdx >= upperBound) {
+            setCurrentIdx(lowerBound);
+            return;
+        }
+    };
+
+    const getScrollDistance = (viewHeight, itemHeight) => {
+        return viewHeight - (viewHeight - itemHeight);
+    };
+
+    const getY = (scrollDistance) => {
+        let offset = scrollOffset + scrollDistance;
+        return offset;
+    };
+
+    const getPosition = (scrollOffset, scrollDistance) => {
+        const index = Math.abs(Math.round((scrollOffset + scrollDistance) / scrollDistance));
+        // console.log(index);
+        return index;
+    }
+
+
+    const renderItem = ({ item }) => {
+        return (
+            <View style={styles.listItemContainer}>
+                <Text style={styles.listItem}
+                    onLayout={e => {
+                        itemHeight = e.nativeEvent.layout.height;
+                        setHeightItem(itemHeight);
+                    }}
+                >
+                    {getTimeFormat(item.title)}
+                </Text>
+            </View>
+        );
+    };
+
+    return (
+        <View style={styles.container}>
+            <View style={styles.arrowContainer}>
+                <MainButton styles={styles.arrow} onPress={handleUpScroll} onLongPress={e => { console.log(e) }}>
+                    <Ionicons name="md-arrow-dropup" size={130} color="#8f8f8f" />
+                </MainButton>
+            </View>
+            <View style={styles.listContainer}
+                onLayout={e => {
+                    viewHeight = e.nativeEvent.layout.height;
+                    setHeightView(viewHeight);
                 }}
-            />
+            >
+                <FlatList
+
+                    snapToOffsets={[...Array(data.length)].map((x, i) => (Math.floor(getScrollDistance(heightView, heightItem) * i)))}
+                    decelerationRate={"normal"}
+                    pagingEnabled
+                    snapToAlignment={"start"}
+                    showsVerticalScrollIndicator={false}
+                    // scrollEnabled={false}
+                    initialScrollIndex={1}
+                    data={data}
+                    renderItem={renderItem}
+                    keyExtractor={item => item.id.toString()}
+                    ref={listRef}
+                    getItemLayout={(data, dataLength) => (
+                        {
+                            length: getScrollDistance(viewHeight, itemHeight),
+                            offset: getScrollDistance(viewHeight, itemHeight) * dataLength,
+                            index: dataLength
+                        }
+                    )}
+                    onScroll={e => {
+                        const currentOffset = e.nativeEvent.contentOffset.y;
+                        const directionUp = currentOffset > scrollOffset ? false : true;
+                        scrollOffset = currentOffset;
+                        // setContentOffsetState(currentOffset)
+                        // e.nativeEvent.contentOffset = { x: 0, y: contentOffsetState };
+                        // scrollOffset = contentOffsetState;
+                        setIsDirectionUp(directionUp);
+                        setCurrentIdx(getPosition(scrollOffset, getScrollDistance(viewHeight, itemHeight)));
+
+                    }}
+                />
+            </View>
+            <View style={styles.arrowContainer}>
+                <MainButton styles={styles.arrow} onPress={handleDownScroll}>
+                    <Ionicons name="md-arrow-dropdown" size={130} color="#8f8f8f" />
+                </MainButton>
+            </View>
         </View>
-        <View style={styles.arrowContainer}>
-            <MainButton styles={styles.arrow} onPress={handleDownScroll}>
-                <Ionicons name="md-arrow-dropdown" size={130} color="#8f8f8f" />
-            </MainButton>
-        </View>
-    </View>
-);
+    );
 
 };
 
@@ -153,17 +228,19 @@ const styles = StyleSheet.create({
         // borderTopWidth:1,
         // borderBottomWidth:1,
         justifyContent: 'center',
+        alignItems: 'center',
         // backgroundColor: 'red',
         // width:'100%',
         // height:'100%',
     },
     listItemContainer: {
+        // flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
         // borderWidth: 0.5,
         // width:'100%',
         // height:'100%',
-        // position:'absolute'
+        // position: 'absolute'
         // margin:10,
         // borderRadius:15,
         // backgroundColor:"#8f8f8f",
@@ -172,6 +249,7 @@ const styles = StyleSheet.create({
     listItem: {
         fontSize: 75,
     },
+
     arrow: {
         justifyContent: 'center',
         alignItems: 'center',
@@ -181,4 +259,3 @@ const styles = StyleSheet.create({
 });
 
 export default EditableClock;
-

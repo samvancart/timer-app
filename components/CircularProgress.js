@@ -11,7 +11,7 @@ const CircularProgress = ({ progress, isSecondHalf }) => {
     useEffect(() => {
         Animated.timing(animation.current, {
             toValue: progress,
-            duration: 250,
+            duration: 100,
             easing: Easing.out(Easing.linear),
             useNativeDriver: true
         }).start();
